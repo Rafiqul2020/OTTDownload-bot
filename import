@@ -1,0 +1,58 @@
+import requests
+
+import json
+
+import telegram
+
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+
+API_KEY = '<5714949962:AAHOT9ilTuJ1c8AehaQt4_0EaOXgpal8dqo>'
+
+def start(update, context):
+
+    context.bot.send_message(chat_id=update.message.chat_id, text="Hi! I'm a movie search bot. Send me the name of a movie to get started.")
+
+def search_movie(update, context):
+
+    movie_name = update.message.text
+
+    search_url = f'http://www.omdbapi.com/?apikey={API_KEY}&t={movie_name}'
+
+    response = requests.get(search_url)
+
+    data = json.loads(response.text)
+
+    if data['Response'] == 'False':
+
+        context.bot.send_message(chat_id=update.message.chat_id, text="Sorry, I couldn't find that movie.")
+
+    else:
+
+        title = data['Title']
+
+        year = data['Year']
+
+        genre = data['Genre']
+
+        plot = data['Plot']
+
+        context.bot.send_message(chat_id=update.message.chat_id, text=f"{title} ({year})\n\n{genre}\n\n{plot}")
+
+def main():
+
+    updater = Updater(token='<your Telegram bot token here>', use_context=True)
+
+    dispatcher = updater.dispatcher
+
+    dispatcher.add_handler(CommandHandler('start', start))
+
+    dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, search_movie))
+
+    updater.start_polling()
+
+    updater.idle()
+
+if __name__ == '__main__':
+
+    main()
+
